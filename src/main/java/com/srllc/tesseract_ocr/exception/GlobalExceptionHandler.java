@@ -60,6 +60,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(FailedToLoadImageException.class)
+    public ResponseEntity<ApiResponse<String>> handleImageFileLoadingException(FailedToLoadImageException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.BAD_REQUEST);
+        response.setMessage("Bad Request: " + ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(FileUploadException.class)
     public ResponseEntity<ApiResponse<String>> handleFileUploadException(FileUploadException ex) {
         ApiResponse<String> response = new ApiResponse<>();
