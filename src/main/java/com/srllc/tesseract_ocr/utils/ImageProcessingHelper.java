@@ -1,6 +1,7 @@
 package com.srllc.tesseract_ocr.utils;
 
 import com.srllc.tesseract_ocr.entity.Image;
+import com.srllc.tesseract_ocr.exception.FailedToLoadImageException;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.opencv.core.Mat;
@@ -41,7 +42,7 @@ public class ImageProcessingHelper {
 
         // Check if image is loaded successfully
         if (src.empty()) {
-            throw new RuntimeException("Failed to load image");
+            throw new FailedToLoadImageException("Failed to load image");
         }
 
         // Convert to grayscale
