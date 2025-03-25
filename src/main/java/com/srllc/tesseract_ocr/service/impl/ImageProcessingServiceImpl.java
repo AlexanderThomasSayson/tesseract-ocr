@@ -9,19 +9,17 @@ import com.srllc.tesseract_ocr.utils.mapper.ImageMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.ConvolveOp;
-import java.awt.image.Kernel;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 @Service
 @Slf4j
@@ -40,41 +38,45 @@ public class ImageProcessingServiceImpl implements ImageProcessingService {
     @Override
     public ImageDto processAndSaveImage(MultipartFile multipartFile) {
         try {
+            // Load OpenCV native library (ensure this is done once in your application startup)
+            nu.pattern.OpenCV.loadShared();
+
+            // Convert MultipartFile to byte array
             byte[] originalImage = multipartFile.getBytes();
 
-            // Read the image
-            BufferedImage src = ImageIO.read(new ByteArrayInputStream(originalImage));
+            // Create a temporary file to work with OpenCV
+            Path tempInputFile = Files.createTempFile("original_", ".png");
+            Files.write(tempInputFile, originalImage, StandardOpenOption.CREATE);
+
+            // Read the image using OpenCV
+            Mat src = Imgcodecs.imread(tempInputFile.toString());
+
+            // Check if image is loaded successfully
+            if (src.empty()) {
+                throw new RuntimeException("Failed to load image");
+            }
 
             // Convert to grayscale
-            BufferedImage gray = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-            Graphics2D g2d = gray.createGraphics();
-            g2d.drawImage(src, 0, 0, null);
-            g2d.dispose();
+            Mat grayImage = new Mat();
+            Imgproc.cvtColor(src, grayImage, Imgproc.COLOR_BGR2GRAY);
 
             // Apply Gaussian blur
-            float[] blurKernel = {
-                    1 / 16f, 1 / 8f, 1 / 16f,
-                    1 / 8f, 1 / 4f, 1 / 8f,
-                    1 / 16f, 1 / 8f, 1 / 16f
-            };
-            Kernel kernel = new Kernel(3, 3, blurKernel);
-            ConvolveOp op = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
-            BufferedImage blurredImage = op.filter(gray, null);
+            Mat blurredImage = new Mat();
+            Imgproc.GaussianBlur(grayImage, blurredImage, new Size(3, 3), 0);
 
-            // Convert processed image to byte array
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(blurredImage, "png", baos);
-            byte[] processedImage = baos.toByteArray();
+            // Create temporary file for processed image
+            Path tempOutputFile = Files.createTempFile("processed_", ".png");
+            Imgcodecs.imwrite(tempOutputFile.toString(), blurredImage);
 
-            // Save processed image temporarily for OCR
-            Path tempFile = Files.createTempFile("processed_", ".png");
-            Files.write(tempFile, processedImage);
+            // Read processed image bytes
+            byte[] processedImage = Files.readAllBytes(tempOutputFile);
 
             // Extract text using Tesseract OCR
-            String extractedText = tesseract.doOCR(tempFile.toFile());
+            String extractedText = tesseract.doOCR(tempOutputFile.toFile());
 
-            // Clean up temporary file
-            Files.delete(tempFile);
+            // Clean up temporary files
+            Files.delete(tempInputFile);
+            Files.delete(tempOutputFile);
 
             // Save image data to database
             Image image = new Image();
