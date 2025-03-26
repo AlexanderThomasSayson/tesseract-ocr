@@ -3,6 +3,7 @@ package com.srllc.tesseract_ocr.service.impl;
 import com.srllc.tesseract_ocr.dao.ImageDao;
 import com.srllc.tesseract_ocr.dto.ImageDto;
 import com.srllc.tesseract_ocr.entity.Image;
+import com.srllc.tesseract_ocr.exception.ImageProcessingException;
 import com.srllc.tesseract_ocr.exception.ResourceNotFoundException;
 import com.srllc.tesseract_ocr.service.ImageProcessingService;
 import com.srllc.tesseract_ocr.utils.ImageProcessingHelper;
@@ -61,7 +62,7 @@ public class ImageProcessingServiceImpl implements ImageProcessingService {
             return imageMapper.mapToDTO(savedImage);
 
         } catch (IOException | TesseractException e) {
-            throw new RuntimeException("Error processing image: " + e.getMessage(), e);
+            throw new ImageProcessingException("Error processing image: " + e.getMessage(), e);
         }
     }
 
