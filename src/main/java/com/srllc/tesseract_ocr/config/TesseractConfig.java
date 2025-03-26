@@ -11,10 +11,9 @@ public class TesseractConfig {
     public Tesseract tesseract() {
         Tesseract tesseract = new Tesseract();
 
-        // Optional: Set the tessdata path if needed
+         // path for the cloned tessdata.
          tesseract.setDatapath("src/main/resources/tessdata");
-
-        // Optional: Set the language if required (default is English)
+         // default language is eng, you can set any language you prefer.
          tesseract.setLanguage("eng");
 
         return tesseract;
