@@ -2,10 +2,11 @@ package com.srllc.tesseract_ocr.utils;
 
 import com.srllc.tesseract_ocr.entity.Image;
 import com.srllc.tesseract_ocr.exception.FailedToLoadImageException;
+import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.opencv.core.Mat;
-import org.opencv.core.Size;
+import org.opencv.core.MatOfInt;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 @Component
+@Slf4j
 public class ImageProcessingHelper {
 
     private final Tesseract tesseract;
@@ -28,8 +30,10 @@ public class ImageProcessingHelper {
      * Create a temporary file with the given byte array
      */
     public Path createTempFile(byte[] imageBytes, String prefix, String suffix) throws IOException {
+        log.info("Creating temporary file with prefix: {} and suffix: {}", prefix, suffix);
         Path tempFile = Files.createTempFile(prefix, suffix);
         Files.write(tempFile, imageBytes, StandardOpenOption.CREATE);
+        log.debug("Temporary file created at: {}", tempFile.toAbsolutePath());
         return tempFile;
     }
 
@@ -37,48 +41,60 @@ public class ImageProcessingHelper {
      * Process the image using OpenCV
      */
     public byte[] processImage(Path inputFile) throws IOException {
-        // Read the image using OpenCV
-        Mat src = Imgcodecs.imread(inputFile.toString());
+        log.info("Processing image: {}", inputFile.toAbsolutePath());
 
-        // Check if image is loaded successfully
+        Mat src = Imgcodecs.imread(inputFile.toString());
         if (src.empty()) {
+            log.error("Failed to load image from: {}", inputFile.toAbsolutePath());
             throw new FailedToLoadImageException("Failed to load image");
         }
 
-        // Convert to grayscale
+        log.info("Converting image to grayscale...");
         Mat grayImage = new Mat();
         Imgproc.cvtColor(src, grayImage, Imgproc.COLOR_BGR2GRAY);
 
-        // Apply Gaussian blur
-        Mat blurredImage = new Mat();
-        Imgproc.GaussianBlur(grayImage, blurredImage, new Size(3, 3), 0);
+        log.info("Applying adaptive thresholding...");
+        Mat binaryImage = new Mat();
+        Imgproc.adaptiveThreshold(grayImage, binaryImage, 255,
+                Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
+                Imgproc.THRESH_BINARY, 11, 2);
 
-        // Create temporary file for processed image
-        Path tempOutputFile = Files.createTempFile("processed_", ".png");
-        Imgcodecs.imwrite(tempOutputFile.toString(), blurredImage);
+        log.info("Compressing image with lossless PNG compression...");
+        MatOfInt compressionParams = new MatOfInt(Imgcodecs.IMWRITE_PNG_COMPRESSION, 9);
 
-        // Read processed image bytes
-        byte[] processedImage = Files.readAllBytes(tempOutputFile);
+        log.info("Creating temporary file for the compressed processed image...");
+        Path tempOutputFile = Files.createTempFile("compressed_", ".png");
+        Imgcodecs.imwrite(tempOutputFile.toString(), binaryImage, compressionParams);
+
+        log.info("Reading compressed image bytes from: {}", tempOutputFile.toAbsolutePath());
+        byte[] compressedImage = Files.readAllBytes(tempOutputFile);
         Files.delete(tempOutputFile);
+        log.debug("Temporary compressed image file deleted: {}", tempOutputFile.toAbsolutePath());
 
-        return processedImage;
+        return compressedImage;
     }
+
 
     /**
      * Extract text from the processed image using Tesseract OCR
      */
     public String extractText(Path imageFile) throws TesseractException {
-        return tesseract.doOCR(imageFile.toFile());
+        log.info("Extracting text from image: {}", imageFile.toAbsolutePath());
+        String extractedText = tesseract.doOCR(imageFile.toFile());
+        log.debug("Extracted text: {}", extractedText);
+        return extractedText;
     }
 
     /**
      * Create Image entity with processing details
      */
     public Image createImageEntity(byte[] originalImage, byte[] processedImage, String extractedText) {
+        log.info("Creating Image entity with extracted text length: {} characters", extractedText.length());
         Image image = new Image();
         image.setOriginalImage(originalImage);
         image.setProcessedImage(processedImage);
         image.setExtractedText(extractedText);
+        log.debug("Image entity created: {}", image);
         return image;
     }
 }
