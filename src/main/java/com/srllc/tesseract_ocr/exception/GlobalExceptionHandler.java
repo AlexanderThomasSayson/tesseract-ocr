@@ -69,11 +69,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ImageProcessingException.class)
+    public ResponseEntity<ApiResponse<String>> handleImageProcessingException(ImageProcessingException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        response.setMessage("Bad Request: " + ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
     @ExceptionHandler(FileUploadException.class)
     public ResponseEntity<ApiResponse<String>> handleFileUploadException(FileUploadException ex) {
         ApiResponse<String> response = new ApiResponse<>();
         response.setHttpStatus(HttpStatus.BAD_REQUEST);
-        response.setMessage("Bad Request: " + ex.getMessage());
+        response.setMessage(ex.getMessage());
         response.setData(null);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
