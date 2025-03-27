@@ -23,12 +23,19 @@ public class OCRService {
         tesseract = new Tesseract();
         tesseract.setDatapath("src/main/resources/tessdata");
         tesseract.setLanguage("eng");
+        // Optimize Tesseract configuration
+        tesseract.setPageSegMode(6); // Assume a single uniform block of text
+        tesseract.setOcrEngineMode(1); // Use LSTM engine only for better accuracy
+        // Optional: Add whitelist if ticket numbers have specific format
+        tesseract.setTessVariable("tessedit_char_whitelist", "MHS0123456789 ");
     }
 
     public String extractText(String imagePath) throws TesseractException {
         try {
             log.info("Extracting text from image: {}", imagePath);
-            return tesseract.doOCR(new File(imagePath));
+            String result = tesseract.doOCR(new File(imagePath)).trim();
+            log.debug("Extracted text: {}", result);
+            return result;
         } catch (TesseractException e) {
             log.error("Error extracting text from image: {}", imagePath, e);
             throw e;
@@ -37,12 +44,13 @@ public class OCRService {
 
     public String extractTicketNumber(String text) {
         log.info("Extracting ticket number from text.");
-        Pattern pattern = Pattern.compile("MHS\\s+(\\d+)");
+        Pattern pattern = Pattern.compile("(MHS|HS)\\s+(\\d+)");
         Matcher matcher = pattern.matcher(text);
         log.debug("Attempting to extract ticket number from text: {}", text);
         if (matcher.find()) {
-            String ticketNumber = matcher.group(1);
-            log.info("Ticket number extracted: {}", ticketNumber);
+            String ticketNumber = matcher.group(2); // Group 2 captures the digits
+            String prefix = matcher.group(1);      // Group 1 captures "MHS" or "HS"
+            log.info("Ticket number extracted: {} (with prefix: {})", ticketNumber, prefix);
             return ticketNumber;
         } else {
             log.warn("No ticket number found in extracted text.");
@@ -64,20 +72,37 @@ public class OCRService {
             // Convert to grayscale
             Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
 
-            // Apply Gaussian blur to reduce noise
-            Imgproc.GaussianBlur(img, img, new Size(5, 5), 0);
+            // Enhance contrast
+            img.convertTo(img, -1, 1.2, 10); // Increase contrast by 20% and brightness by 10
 
-            // Apply Adaptive Thresholding for better text extraction
-            Imgproc.adaptiveThreshold(img, img, 255, Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C, Imgproc.THRESH_BINARY, 11, 2);
+            // Apply Gaussian blur with optimized kernel size
+            Imgproc.GaussianBlur(img, img, new Size(3, 3), 0);
+
+            // Apply sharpening kernel
+            Mat sharpened = new Mat();
+            Imgproc.GaussianBlur(img, sharpened, new Size(0, 0), 10);
+
+            // Optimized adaptive thresholding
+            Imgproc.adaptiveThreshold(img, img, 255,
+                    Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
+                    Imgproc.THRESH_BINARY,
+                    15, // Larger block size for better adaptation
+                    4); // Adjusted constant for better binarization
 
             String processedPath = imagePath.replace("uploads/", "uploads/processed_");
-            Imgcodecs.imwrite(processedPath, img);
+            boolean saved = Imgcodecs.imwrite(processedPath, img);
+
+            if (!saved) {
+                log.error("Failed to save processed image: {}", processedPath);
+                throw new RuntimeException("Failed to save processed image");
+            }
+
             log.info("Image processing complete. Processed image saved at: {}", processedPath);
             return processedPath;
+
         } catch (Exception e) {
             log.error("Error processing image: {}", imagePath, e);
             throw new RuntimeException("Unexpected error occurred during image processing.", e);
         }
     }
-
 }
