@@ -7,7 +7,7 @@ public interface VoucherService {
 
     VoucherDTO processVoucher(MultipartFile multipartFile);
 
-    VoucherDTO getOriginalImage(Long id);
+    byte[] getOriginalImage(Long id);
 
-    VoucherDTO getProcessedImage(Long id);
+    byte[] getProcessedImage(Long id);
 }

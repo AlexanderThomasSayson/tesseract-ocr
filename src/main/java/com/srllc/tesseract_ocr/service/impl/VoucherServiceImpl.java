@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -94,24 +95,37 @@ public class VoucherServiceImpl implements VoucherService {
     }
 
     @Override
-    public VoucherDTO getOriginalImage(Long id) {
-        log.info("Fetching original image for voucher ID: {}", id);
+    public byte[] getOriginalImage(Long id) {
         Voucher voucher = voucherDAO.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Voucher not found for ID: {}", id);
-                    return new RuntimeException("Voucher not found!");
-                });
-        return voucherMapper.mapToDto(voucher);
+                .orElseThrow(() -> new ResourceNotFoundException("Voucher not found with ID: " + id));
+
+        File file = new File(voucher.getOriginalImageURL());
+        if (!file.exists()) {
+            throw new ResourceNotFoundException("Image file not found for voucher ID: " + id);
+        }
+
+        try {
+            return Files.readAllBytes(file.toPath());
+        } catch (Exception e) {
+            throw new RuntimeException("Error reading image file", e);
+        }
     }
 
     @Override
-    public VoucherDTO getProcessedImage(Long id) {
-        log.info("Fetching processed image for voucher ID: {}", id);
+    public byte[] getProcessedImage(Long id) {
         Voucher voucher = voucherDAO.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Voucher not found for ID: {}", id);
-                    return new RuntimeException("Voucher not found!");
-                });
-        return voucherMapper.mapToDto(voucher);
+                .orElseThrow(() -> new ResourceNotFoundException("Voucher not found with ID: " + id));
+
+        File file = new File(voucher.getProcessedImageURL());
+        if (!file.exists()) {
+            throw new ResourceNotFoundException("Image file not found for voucher ID: " + id);
+        }
+
+        try {
+            return Files.readAllBytes(file.toPath());
+        } catch (Exception e) {
+            throw new RuntimeException("Error reading image file", e);
+        }
     }
+
 }
