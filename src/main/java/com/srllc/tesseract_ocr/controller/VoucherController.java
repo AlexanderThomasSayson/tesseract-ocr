@@ -1,12 +1,11 @@
 package com.srllc.tesseract_ocr.controller;
 
-import com.srllc.tesseract_ocr.dao.VoucherDAO;
 import com.srllc.tesseract_ocr.dto.VoucherDTO;
-import com.srllc.tesseract_ocr.entity.Voucher;
-import com.srllc.tesseract_ocr.exception.ResourceNotFoundException;
 import com.srllc.tesseract_ocr.service.VoucherService;
 import com.srllc.tesseract_ocr.utils.ApiResponse;
 import com.srllc.tesseract_ocr.utils.DefaultResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,23 +16,18 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 @RestController
-@RequestMapping("/api/vouchers")
+@RequestMapping("/api/v1/vouchers")
+@Tag(name = "Voucher Controller", description = "Operations for managing OCR for syngenta vouchers.")
 public class VoucherController {
 
     private final VoucherService voucherService;
-    private final VoucherDAO voucherDAO;
 
-    public VoucherController(VoucherService voucherService, VoucherDAO voucherDAO) {
+    public VoucherController(VoucherService voucherService) {
         this.voucherService = voucherService;
-        this.voucherDAO = voucherDAO;
     }
 
-
+    @Operation(summary = "Upload voucher", description = "This endpoint allows uploading of vouchers and use tesseract for text extraction.")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<VoucherDTO> uploadVoucher(@RequestPart("file") MultipartFile file) {
             VoucherDTO dto = voucherService.processVoucher(file);
@@ -41,29 +35,22 @@ public class VoucherController {
 
     }
 
-    @GetMapping("/image/{id}/original")
-    public ResponseEntity<byte[]> getOriginalImage(@PathVariable Long id) throws Exception {
-        Voucher voucher = voucherDAO.findById(id).orElseThrow(() -> new Exception("Not found"));
-
-        File file = new File(voucher.getOriginalImageURL());
-        if (!file.exists()) {
-            throw new ResourceNotFoundException("Image file not found");
-        }
-
-        byte[] imageBytes = Files.readAllBytes(file.toPath());
+    @Operation(summary = "Get original image", description = "This endpoint retrieves the original uploaded image by its ID.")
+    @GetMapping("/image/original{id}")
+    public ResponseEntity<byte[]> getOriginalImage(@PathVariable Long id) {
+        byte[] imageBytes = voucherService.getOriginalImage(id);
 
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(imageBytes);
     }
 
-
-    @GetMapping("/image/{id}/processed")
-    public ResponseEntity<byte[]> getProcessedImage(@PathVariable Long id) throws Exception {
-        Voucher voucher = voucherDAO.findById(id).orElseThrow(() -> new Exception("Not found"));
-        File file = new File(voucher.getProcessedImageURL());
+    @Operation(summary = "Get processed image", description = "This endpoint retrieves the processed image by its ID.")
+    @GetMapping("/image/processed{id}")
+    public ResponseEntity<byte[]> getProcessedImage(@PathVariable Long id) {
+        byte[] imageBytes = voucherService.getProcessedImage(id);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
-                .body(Files.readAllBytes(Paths.get(file.getAbsolutePath())));
+                .body(imageBytes);
     }
 }
