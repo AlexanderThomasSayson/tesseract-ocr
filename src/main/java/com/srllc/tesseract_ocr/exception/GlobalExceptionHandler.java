@@ -78,6 +78,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
+    @ExceptionHandler(FileReadingException.class)
+    public ResponseEntity<ApiResponse<String>> handleFileReadingException(FileReadingException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        response.setMessage("Error reading image file" + ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
     @ExceptionHandler(FileUploadException.class)
     public ResponseEntity<ApiResponse<String>> handleFileUploadException(FileUploadException ex) {
         ApiResponse<String> response = new ApiResponse<>();
