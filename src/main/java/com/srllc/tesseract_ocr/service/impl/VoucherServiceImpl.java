@@ -3,22 +3,20 @@ package com.srllc.tesseract_ocr.service.impl;
 import com.srllc.tesseract_ocr.dao.VoucherDAO;
 import com.srllc.tesseract_ocr.dto.VoucherDTO;
 import com.srllc.tesseract_ocr.entity.Voucher;
-import com.srllc.tesseract_ocr.exception.FileUploadException;
+import com.srllc.tesseract_ocr.exception.FileReadingException;
 import com.srllc.tesseract_ocr.exception.ResourceNotFoundException;
 import com.srllc.tesseract_ocr.service.OCRService;
 import com.srllc.tesseract_ocr.service.VoucherService;
+import com.srllc.tesseract_ocr.utils.FileStorageUtil;
+import com.srllc.tesseract_ocr.utils.OCRUtil;
 import com.srllc.tesseract_ocr.utils.mapper.VoucherMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.sourceforge.tess4j.TesseractException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 @Service
 @Slf4j
@@ -34,64 +32,30 @@ public class VoucherServiceImpl implements VoucherService {
         this.voucherMapper = voucherMapper;
     }
 
-    private final String uploadDir = "uploads/";
-
     @Transactional
     @Override
     public VoucherDTO processVoucher(MultipartFile multipartFile) {
         log.info("Starting voucher processing...");
-        try {
-            Files.createDirectories(Paths.get(uploadDir));
-            log.info("Upload directory ensured: {}", uploadDir);
 
-            String originalFileName = multipartFile.getOriginalFilename();
-            if (originalFileName == null || originalFileName.isBlank()) {
-                log.error("File name is missing or invalid.");
-                throw new ResourceNotFoundException("File name is missing or invalid.");
-            }
+        String savedFilePath = FileStorageUtil.saveFile(multipartFile);
+        String processedPath = ocrService.processImage(savedFilePath);
 
-            String savedFilePath = uploadDir + originalFileName;
-            Files.copy(multipartFile.getInputStream(), Paths.get(savedFilePath), StandardCopyOption.REPLACE_EXISTING);
-            log.info("File saved at: {}", savedFilePath);
+        log.info("Image processed and saved at: {}", processedPath);
 
-            String processedPath = ocrService.processImage(savedFilePath);
-            log.info("Image processed and saved at: {}", processedPath);
+        String extractedText = OCRUtil.extractText(ocrService, processedPath);
+        String ticketNo = OCRUtil.extractTicketNumber(ocrService, extractedText);
 
-            String extractedText;
-            try {
-                extractedText = ocrService.extractText(processedPath);
-                log.info("Text extracted successfully from image.");
-            } catch (TesseractException e) {
-                log.error("OCR processing failed for: {}", originalFileName, e);
-                throw new FileUploadException("OCR processing failed for: " + originalFileName, e);
-            }
-            log.info("Extracted text: {}", extractedText);
+        VoucherDTO voucherDTO = new VoucherDTO();
+        voucherDTO.setOriginalText(extractedText);
+        voucherDTO.setTicketNo(ticketNo);
+        voucherDTO.setOriginalImageURL(savedFilePath);
+        voucherDTO.setProcessedImageURL(processedPath);
 
-            String ticketNo = ocrService.extractTicketNumber(extractedText);
-            if (ticketNo == null) {
-                log.error("Ticket number not found in extracted text!");
-                throw new ResourceNotFoundException("Ticket number not found in extracted text!");
-            }
-            log.info("Ticket number extracted: {}", ticketNo);
+        Voucher voucher = voucherMapper.mapToEntity(voucherDTO);
+        voucher = voucherDAO.save(voucher);
+        log.info("Voucher saved with ID: {}", voucher.getId());
 
-            VoucherDTO voucherDTO = new VoucherDTO();
-            voucherDTO.setOriginalText(extractedText);
-            voucherDTO.setTicketNo(ticketNo);
-            voucherDTO.setOriginalImageURL(savedFilePath);
-            voucherDTO.setProcessedImageURL(processedPath);
-
-            Voucher voucher = voucherMapper.mapToEntity(voucherDTO);
-            voucher = voucherDAO.save(voucher);
-            log.info("Voucher saved with ID: {}", voucher.getId());
-
-            return voucherMapper.mapToDto(voucher);
-        } catch (IOException e) {
-            log.error("Error saving the file: {}", multipartFile.getOriginalFilename(), e);
-            throw new FileUploadException("Error saving the file: " + multipartFile.getOriginalFilename(), e);
-        } catch (RuntimeException e) {
-            log.error("Unexpected error occurred during voucher processing.", e);
-            throw new FileUploadException("Unexpected error occurred during voucher processing.", e);
-        }
+        return voucherMapper.mapToDto(voucher);
     }
 
     @Override
@@ -107,7 +71,7 @@ public class VoucherServiceImpl implements VoucherService {
         try {
             return Files.readAllBytes(file.toPath());
         } catch (Exception e) {
-            throw new RuntimeException("Error reading image file", e);
+            throw new FileReadingException("Error reading image file", e);
         }
     }
 
@@ -124,7 +88,7 @@ public class VoucherServiceImpl implements VoucherService {
         try {
             return Files.readAllBytes(file.toPath());
         } catch (Exception e) {
-            throw new RuntimeException("Error reading image file", e);
+            throw new FileReadingException("Error reading image file", e);
         }
     }
 
