@@ -29,4 +29,14 @@ public class OCRUtil {
         log.info("Ticket number extracted: {}", ticketNo);
         return ticketNo;
     }
+
+    public static String extractAmount(OCRService ocrService, String text) {
+        String amount = ocrService.extractAmount(text);
+        if (amount == null) {
+            log.error("Amount not found in extracted text!");
+            throw new ResourceNotFoundException("Amount not found in extracted text!");
+        }
+        log.info("Amount extracted: {}", amount);
+        return amount;
+    }
 }

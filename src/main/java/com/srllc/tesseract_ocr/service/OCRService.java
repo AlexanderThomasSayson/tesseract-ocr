@@ -33,7 +33,7 @@ public class OCRService {
         tesseract.setLanguage("eng");
         tesseract.setPageSegMode(6); // Assume a single uniform block of text
         tesseract.setOcrEngineMode(1); // Use LSTM engine only for better accuracy
-        tesseract.setTessVariable("tessedit_char_whitelist", "MHS0123456789 ");
+        tesseract.setTessVariable("tessedit_char_whitelist", "₱PMHS0123456789 ");
     }
 
     /**
@@ -47,13 +47,14 @@ public class OCRService {
         try {
             log.info("Extracting text from image: {}", imagePath);
             String result = tesseract.doOCR(new File(imagePath)).trim();
-            log.debug("Extracted text: {}", result);
+            log.info("Extracted text: {}", result);
             return result;
         } catch (TesseractException e) {
             log.error("Error extracting text from image: {}", imagePath, e);
             throw e;
         }
     }
+
 
     /**
      * Extracts a ticket number from the provided text.
@@ -74,6 +75,30 @@ public class OCRService {
             return ticketNumber;
         } else {
             log.warn("No ticket number found in extracted text.");
+            return null;
+        }
+    }
+
+    /**
+     * Extracts amount from the provided text.
+     * The expected format is "₱<digits>".
+     *
+     * @param text the text to search for a ticket number.
+     * @return the extracted amount, or null if not found.
+     */
+    public String extractAmount(String text) {
+        log.info("Extracting amount from text.");
+        Pattern pattern = Pattern.compile("(₱|P)\\s*(\\d+)"); // Basic version
+        // For decimals or commas: Pattern pattern = Pattern.compile("(₱|P)\\s*([\\d,]+\\.?\\d*)");
+        Matcher matcher = pattern.matcher(text);
+        log.debug("Attempting to extract amount from text: {}", text);
+        if (matcher.find()) {
+            String prefix = matcher.group(1); // ₱ or P
+            String amount = matcher.group(2); // Digits
+            log.info("Amount extracted: {} (with prefix: {})", amount, prefix);
+            return amount;
+        } else {
+            log.warn("No amount found in extracted text: '{}'", text);
             return null;
         }
     }

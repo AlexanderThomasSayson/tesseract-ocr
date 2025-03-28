@@ -9,12 +9,12 @@ import com.srllc.tesseract_ocr.service.OCRService;
 import com.srllc.tesseract_ocr.service.VoucherService;
 import com.srllc.tesseract_ocr.utils.FileStorageUtil;
 import com.srllc.tesseract_ocr.utils.OCRUtil;
+import com.srllc.tesseract_ocr.utils.constants.ConstantStrings;
 import com.srllc.tesseract_ocr.utils.mapper.VoucherMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.nio.file.Files;
 
@@ -44,12 +44,14 @@ public class VoucherServiceImpl implements VoucherService {
 
         String extractedText = OCRUtil.extractText(ocrService, processedPath);
         String ticketNo = OCRUtil.extractTicketNumber(ocrService, extractedText);
+        String amount = OCRUtil.extractAmount(ocrService,extractedText);
 
         String voucherNo = "MHS " + ticketNo;
 
         VoucherDTO voucherDTO = new VoucherDTO();
         voucherDTO.setOriginalText(extractedText);
         voucherDTO.setTicketNo(voucherNo);
+        voucherDTO.setAmount(ConstantStrings.PESO_SIGN + amount);
         voucherDTO.setOriginalImageURL(savedFilePath);
         voucherDTO.setProcessedImageURL(processedPath);
 
