@@ -12,6 +12,7 @@ public class VoucherMapper {
         voucherDTO.setId(voucher.getId());
         voucherDTO.setOriginalText(voucher.getOriginalText());
         voucherDTO.setTicketNo(voucher.getTicketNo());
+        voucherDTO.setAmount(voucher.getAmount());
         voucherDTO.setOriginalImageURL(voucher.getOriginalImageURL());
         voucherDTO.setProcessedImageURL(voucher.getProcessedImageURL());
 
@@ -23,6 +24,7 @@ public class VoucherMapper {
         voucher.setId(voucherDTO.getId());
         voucher.setOriginalText(voucherDTO.getOriginalText());
         voucher.setTicketNo(voucherDTO.getTicketNo());
+        voucher.setAmount(voucherDTO.getAmount());
         voucher.setOriginalImageURL(voucherDTO.getOriginalImageURL());
         voucher.setProcessedImageURL(voucherDTO.getProcessedImageURL());
 

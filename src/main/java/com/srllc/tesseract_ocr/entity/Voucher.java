@@ -28,6 +28,9 @@ public class Voucher {
     @Column(name = "ticket_number")
     private String ticketNo;
 
+    @Column(name = "amount")
+    private String amount;
+
     @Column(name = "original_image_url")
     private String originalImageURL;
 
