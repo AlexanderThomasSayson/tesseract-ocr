@@ -1,0 +1,107 @@
+package com.srllc.tesseract_ocr.domain.exception;
+
+import com.srllc.tesseract_ocr.common.utils.ApiResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    /**
+     * Handles MethodArgumentNotValidException for validation errors and returns a
+     * 400 Bad Request status.
+     *
+     * @param ex the MethodArgumentNotValidException thrown when method arguments
+     *           fail validation
+     * @return ResponseEntity containing an ApiResponse with error details and an
+     *         HTTP status code
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleArgumentMethod(MethodArgumentNotValidException ex) {
+        // Create the error details
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        // Create the ApiResponse object
+        ApiResponse<Map<String, String>> response = new ApiResponse<>();
+        response.setMessage("Validation failed for one or more arguments.");
+        response.setData(errors);
+        response.setErrors(List.of(errors));
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        response.setMessage(ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<String>> handleBadRequestException(BadRequestException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.BAD_REQUEST);
+        response.setMessage("Bad Request: " + ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FailedToLoadImageException.class)
+    public ResponseEntity<ApiResponse<String>> handleImageFileLoadingException(FailedToLoadImageException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.BAD_REQUEST);
+        response.setMessage("Bad Request: " + ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ImageProcessingException.class)
+    public ResponseEntity<ApiResponse<String>> handleImageProcessingException(ImageProcessingException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        response.setMessage("Bad Request: " + ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler(FileReadingException.class)
+    public ResponseEntity<ApiResponse<String>> handleFileReadingException(FileReadingException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        response.setMessage("Error reading image file" + ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler(FileUploadException.class)
+    public ResponseEntity<ApiResponse<String>> handleFileUploadException(FileUploadException ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.BAD_REQUEST);
+        response.setMessage(ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<String>> handleGeneralException(Exception ex) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setHttpStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        response.setMessage(ex.getMessage());
+        response.setData(null);
+        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
