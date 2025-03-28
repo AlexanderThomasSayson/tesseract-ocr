@@ -45,9 +45,11 @@ public class VoucherServiceImpl implements VoucherService {
         String extractedText = OCRUtil.extractText(ocrService, processedPath);
         String ticketNo = OCRUtil.extractTicketNumber(ocrService, extractedText);
 
+        String voucherNo = "MHS " + ticketNo;
+
         VoucherDTO voucherDTO = new VoucherDTO();
         voucherDTO.setOriginalText(extractedText);
-        voucherDTO.setTicketNo(ticketNo);
+        voucherDTO.setTicketNo(voucherNo);
         voucherDTO.setOriginalImageURL(savedFilePath);
         voucherDTO.setProcessedImageURL(processedPath);
 
