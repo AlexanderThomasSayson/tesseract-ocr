@@ -1,4 +1,4 @@
-package com.srllc.tesseract_ocr.common.utils.mapper;
+package com.srllc.tesseract_ocr.common.mapper;
 
 import com.srllc.tesseract_ocr.domain.dto.VoucherDTO;
 import com.srllc.tesseract_ocr.domain.entity.Voucher;

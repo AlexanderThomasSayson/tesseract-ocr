@@ -7,7 +7,7 @@ import com.srllc.tesseract_ocr.domain.exception.ImageProcessingException;
 import com.srllc.tesseract_ocr.domain.exception.ResourceNotFoundException;
 import com.srllc.tesseract_ocr.domain.service.ImageProcessingService;
 import com.srllc.tesseract_ocr.common.utils.ImageProcessingHelper;
-import com.srllc.tesseract_ocr.common.utils.mapper.ImageMapper;
+import com.srllc.tesseract_ocr.common.mapper.ImageMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.TesseractException;
 import org.springframework.stereotype.Service;

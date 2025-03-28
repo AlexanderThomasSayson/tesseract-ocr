@@ -1,4 +1,4 @@
-package com.srllc.tesseract_ocr.common.utils.constants;
+package com.srllc.tesseract_ocr.common.constants;
 
 import org.springframework.stereotype.Component;
 
