@@ -8,7 +8,7 @@ public class OpenCVLoader {
 
     public static void loadOpenCV() {
         if (!loaded) {
-            System.load("C:\\opencv\\build\\x64\\vc16\\bin\\opencv_java490.dll");
+            System.load("C:\\opencv\\build\\java\\x64\\opencv_java490.dll");
             loaded = true;
             log.info("OpenCV Loaded Successfully!");
         }

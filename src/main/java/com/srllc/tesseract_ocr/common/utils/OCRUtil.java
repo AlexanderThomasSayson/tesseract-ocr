@@ -6,6 +6,8 @@ import com.srllc.tesseract_ocr.domain.service.OCRService;
 import lombok.extern.slf4j.Slf4j;
 import net.sourceforge.tess4j.TesseractException;
 
+import java.util.List;
+
 @Slf4j
 public class OCRUtil {
 
@@ -38,5 +40,17 @@ public class OCRUtil {
         }
         log.info("Amount extracted: {}", amount);
         return amount;
+    }
+
+    public static List<String> extractMultipleTicketNumbers(OCRService ocrService, String text) {
+        List<String> ticketNumbers = ocrService.extractMultipleTicketNumbers(text);
+
+        if (ticketNumbers.isEmpty()) {
+            log.error("No ticket numbers found in extracted text!");
+            throw new ResourceNotFoundException("No ticket numbers found in extracted text!");
+        }
+
+        log.info("Extracted ticket numbers: {}", ticketNumbers);
+        return ticketNumbers;
     }
 }

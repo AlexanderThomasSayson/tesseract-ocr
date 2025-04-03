@@ -17,6 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.srllc.tesseract_ocr.common.utils.OCRUtil.extractMultipleTicketNumbers;
 
 @Service
 @Slf4j
@@ -96,4 +100,36 @@ public class VoucherServiceImpl implements VoucherService {
         }
     }
 
+    @Transactional
+    @Override
+    public List<VoucherDTO> processMultipleVouchers(MultipartFile multipartFile) {
+        log.info("Starting multiple voucher processing...");
+
+        String savedFilePath = FileStorageUtil.saveFile(multipartFile);
+        String processedPath = ocrService.processImage(savedFilePath);
+
+        log.info("Image processed and saved at: {}", processedPath);
+
+        String extractedText = OCRUtil.extractText(ocrService, processedPath);
+        List<String> voucherNumbers = OCRUtil.extractMultipleTicketNumbers(ocrService, extractedText);
+        String amount = "500";
+
+        List<VoucherDTO> vouchers = new ArrayList<>();
+        for (String voucherNo : voucherNumbers) {
+            VoucherDTO voucherDTO = new VoucherDTO();
+            voucherDTO.setOriginalText(extractedText);
+            voucherDTO.setTicketNo(ConstantStrings.TICKET_PREFIX + voucherNo);
+            voucherDTO.setAmount(ConstantStrings.PESO_SIGN + amount);
+            voucherDTO.setOriginalImageURL(savedFilePath);
+            voucherDTO.setProcessedImageURL(processedPath);
+
+            Voucher voucher = voucherMapper.mapToEntity(voucherDTO);
+            voucher = voucherDAO.save(voucher);
+            log.info("Voucher saved with ID: {}", voucher.getId());
+
+            vouchers.add(voucherMapper.mapToDto(voucher));
+        }
+
+        return vouchers;
+    }
 }

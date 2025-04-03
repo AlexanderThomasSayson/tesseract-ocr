@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/vouchers")
 @Tag(name = "Voucher Controller", description = "Operations for managing OCR for syngenta vouchers.")
@@ -52,5 +54,12 @@ public class VoucherController {
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(imageBytes);
+    }
+
+    @Operation(summary = "Upload multiple vouchers", description = "Upload a file containing multiple vouchers and extract ticket numbers.")
+    @PostMapping(value = "/upload-multiple-vouchers", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<List<VoucherDTO>> uploadMultipleVouchers(@RequestPart("file") MultipartFile file) {
+        List<VoucherDTO> dtoList = voucherService.processMultipleVouchers(file);
+        return DefaultResponse.displayCreatedObject(dtoList);
     }
 }

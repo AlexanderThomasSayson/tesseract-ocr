@@ -11,6 +11,8 @@ import org.opencv.imgproc.Imgproc;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -155,5 +157,25 @@ public class OCRService {
             log.error("Error processing image: {}", imagePath, e);
             throw new RuntimeException("Unexpected error occurred during image processing.", e);
         }
+    }
+
+    public List<String> extractMultipleTicketNumbers(String text) {
+        log.info("Extracting multiple ticket numbers from text.");
+        Pattern pattern = Pattern.compile("(MHS|HS)\\s+(\\d+)");
+        Matcher matcher = pattern.matcher(text);
+        List<String> ticketNumbers = new ArrayList<>();
+
+        while (matcher.find()) {
+            String ticketNumber = matcher.group(2);
+            String prefix = matcher.group(1);
+            log.info("Ticket number extracted: {} (with prefix: {})", ticketNumber, prefix);
+            ticketNumbers.add(ticketNumber);
+        }
+
+        if (ticketNumbers.isEmpty()) {
+            log.warn("No ticket numbers found in extracted text.");
+        }
+
+        return ticketNumbers;
     }
 }
