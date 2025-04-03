@@ -6,4 +6,6 @@ import org.springframework.stereotype.Component;
 public class ConstantStrings {
 
     public static final String PESO_SIGN = "₱ ";
+
+    public static final String TICKET_PREFIX = "MHS ";
 }
