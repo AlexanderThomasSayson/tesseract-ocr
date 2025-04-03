@@ -26,7 +26,9 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherDAO voucherDAO;
     private final VoucherMapper voucherMapper;
 
-    public VoucherServiceImpl(OCRService ocrService, VoucherDAO voucherDAO, VoucherMapper voucherMapper) {
+    public VoucherServiceImpl(OCRService ocrService,
+                              VoucherDAO voucherDAO,
+                              VoucherMapper voucherMapper) {
         this.ocrService = ocrService;
         this.voucherDAO = voucherDAO;
         this.voucherMapper = voucherMapper;
@@ -43,14 +45,12 @@ public class VoucherServiceImpl implements VoucherService {
         log.info("Image processed and saved at: {}", processedPath);
 
         String extractedText = OCRUtil.extractText(ocrService, processedPath);
-        String ticketNo = OCRUtil.extractTicketNumber(ocrService, extractedText);
-        String amount = OCRUtil.extractAmount(ocrService,extractedText);
-
-        String voucherNo = "MHS " + ticketNo;
+        String voucherNo = OCRUtil.extractTicketNumber(ocrService, extractedText);
+        String amount = "500";
 
         VoucherDTO voucherDTO = new VoucherDTO();
         voucherDTO.setOriginalText(extractedText);
-        voucherDTO.setTicketNo(voucherNo);
+        voucherDTO.setTicketNo(ConstantStrings.TICKET_PREFIX + voucherNo);
         voucherDTO.setAmount(ConstantStrings.PESO_SIGN + amount);
         voucherDTO.setOriginalImageURL(savedFilePath);
         voucherDTO.setProcessedImageURL(processedPath);
