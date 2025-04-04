@@ -125,26 +125,34 @@ public class OCRService {
             }
 
             // Convert to grayscale
-            Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
+            Mat gray = new Mat();
+            Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGR2GRAY);
 
             // Enhance contrast
-            img.convertTo(img, -1, 1.2, 10);
+            //img.convertTo(img, -1, 1.2, 10);
 
             // Apply Gaussian blur
-            Imgproc.GaussianBlur(img, img, new Size(3, 3), 0);
+            //Imgproc.GaussianBlur(img, img, new Size(3, 3), 0);
 
             // Apply sharpening kernel
-            Mat sharpened = new Mat();
-            Imgproc.GaussianBlur(img, sharpened, new Size(0, 0), 10);
+            //Mat sharpened = new Mat();
+            //Imgproc.GaussianBlur(img, sharpened, new Size(0, 0), 10);
+
+            Mat equalized = new Mat();
+            Imgproc.equalizeHist(gray, equalized);
 
             // Adaptive thresholding
-            Imgproc.adaptiveThreshold(img, img, 255,
+            Mat thresh = new Mat();
+            Imgproc.adaptiveThreshold(equalized, thresh, 255,
                     Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
-                    Imgproc.THRESH_BINARY,
-                    15, 4);
+                    Imgproc.THRESH_BINARY_INV,
+                    15, 9);
+
+            Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2));
+            Imgproc.dilate(thresh, thresh, kernel);
 
             String processedPath = imagePath.replace("uploads/", "uploads/processed_");
-            boolean saved = Imgcodecs.imwrite(processedPath, img);
+            boolean saved = Imgcodecs.imwrite(processedPath, thresh);
 
             if (!saved) {
                 log.error("Failed to save processed image: {}", processedPath);
