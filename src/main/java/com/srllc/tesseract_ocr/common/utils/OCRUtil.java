@@ -44,13 +44,21 @@ public class OCRUtil {
 
     public static List<String> extractMultipleTicketNumbers(OCRService ocrService, String text) {
         List<String> ticketNumbers = ocrService.extractMultipleTicketNumbers(text);
-
-        if (ticketNumbers.isEmpty()) {
+        if (ticketNumbers == null) {
             log.error("No ticket numbers found in extracted text!");
             throw new ResourceNotFoundException("No ticket numbers found in extracted text!");
         }
-
         log.info("Extracted ticket numbers: {}", ticketNumbers);
         return ticketNumbers;
+    }
+
+    public static String extractSINumber(OCRService ocrService, String imagePath) {
+        String siNumber = ocrService.extractSINumber(imagePath);
+        if (siNumber == null) {
+            log.error("No SI Number found!");
+            throw new ResourceNotFoundException("SI Number not found in extracted text!");
+        }
+        log.info("SI number extracted: {}", siNumber);
+        return siNumber;
     }
 }

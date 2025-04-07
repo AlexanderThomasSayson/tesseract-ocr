@@ -10,5 +10,6 @@ public class VoucherDTO {
     private String amount;
     private String originalImageURL;
     private String processedImageURL;
+    private String siNumber;
 }
 

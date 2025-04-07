@@ -15,6 +15,7 @@ public class VoucherMapper {
         voucherDTO.setAmount(voucher.getAmount());
         voucherDTO.setOriginalImageURL(voucher.getOriginalImageURL());
         voucherDTO.setProcessedImageURL(voucher.getProcessedImageURL());
+        voucherDTO.setSiNumber(voucher.getSiNumber());
 
         return voucherDTO;
     }
@@ -27,6 +28,7 @@ public class VoucherMapper {
         voucher.setAmount(voucherDTO.getAmount());
         voucher.setOriginalImageURL(voucherDTO.getOriginalImageURL());
         voucher.setProcessedImageURL(voucherDTO.getProcessedImageURL());
+        voucher.setSiNumber(voucherDTO.getSiNumber());
 
         return voucher;
     }

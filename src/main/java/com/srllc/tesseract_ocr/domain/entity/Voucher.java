@@ -36,5 +36,8 @@ public class Voucher {
 
     @Column(name = "processed_image_url")
     private String processedImageURL;
+
+    @Column(name = "si_number")
+    private String siNumber;
 }
 

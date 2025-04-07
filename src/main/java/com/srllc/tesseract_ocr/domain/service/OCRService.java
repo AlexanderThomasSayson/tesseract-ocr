@@ -9,6 +9,7 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.springframework.stereotype.Service;
+import org.opencv.core.Core;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -168,7 +169,7 @@ public class OCRService {
     }
 
     public List<String> extractMultipleTicketNumbers(String text) {
-        log.info("Extracting multiple ticket numbers from text.");
+        log.info("Extracting multiple ticket numbers from text...");
         Pattern pattern = Pattern.compile("(MHS|HS)\\s+(\\d+)");
         Matcher matcher = pattern.matcher(text);
         List<String> ticketNumbers = new ArrayList<>();
@@ -185,5 +186,51 @@ public class OCRService {
         }
 
         return ticketNumbers;
+    }
+
+    public String extractSINumber(String imagePath) {
+        log.info("Extracting SI number from rotated image...");
+
+        try {
+            String absolutePath = new File(imagePath).getAbsolutePath();
+            Mat original = Imgcodecs.imread(absolutePath);
+
+            if (original.empty()) {
+                log.error("Failed to load image for SI extraction: {}", imagePath);
+                throw new ImageProcessingException("Image is empty or corrupt.");
+            }
+
+            Mat rotated = new Mat();
+            Core.transpose(original, rotated);
+            Core.flip(rotated, rotated, 0);
+
+            String rotatedPath = imagePath.replace("uploads/", "uploads/si_");
+            boolean saved = Imgcodecs.imwrite(rotatedPath, rotated);
+
+            if (!saved) {
+                log.error("Failed to save rotated image for SI extraction: {}", rotatedPath);
+                throw new RuntimeException("Failed to save rotated image.");
+            }
+
+            String ocrResult = tesseract.doOCR(new File(rotatedPath)).trim();
+            log.info("Attempting to extract SI number from text: {}", ocrResult);
+
+            Pattern pattern = Pattern.compile("(SI|S)\\s+(\\d+)");
+            Matcher matcher = pattern.matcher(ocrResult);
+
+            if (matcher.find()) {
+                String siNumber = matcher.group(2);
+                String prefix = matcher.group(1);
+                log.info("SI number extracted: {} (with prefix: {})", siNumber, prefix);
+                return siNumber;
+            } else {
+                log.warn("No SI number found in extracted text.");
+                return null;
+            }
+
+        } catch (Exception e) {
+            log.error("Error occurred while extracting SI number.", e);
+            return null;
+        }
     }
 }

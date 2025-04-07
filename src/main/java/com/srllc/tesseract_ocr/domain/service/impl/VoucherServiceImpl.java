@@ -113,6 +113,7 @@ public class VoucherServiceImpl implements VoucherService {
         String extractedText = OCRUtil.extractText(ocrService, processedPath);
         List<String> voucherNumbers = OCRUtil.extractMultipleTicketNumbers(ocrService, extractedText);
         String amount = "500";
+        String siNumber = OCRUtil.extractSINumber(ocrService, processedPath);
 
         List<VoucherDTO> vouchers = new ArrayList<>();
         for (String voucherNo : voucherNumbers) {
@@ -122,6 +123,7 @@ public class VoucherServiceImpl implements VoucherService {
             voucherDTO.setAmount(ConstantStrings.PESO_SIGN + amount);
             voucherDTO.setOriginalImageURL(savedFilePath);
             voucherDTO.setProcessedImageURL(processedPath);
+            voucherDTO.setSiNumber(siNumber);
 
             Voucher voucher = voucherMapper.mapToEntity(voucherDTO);
             voucher = voucherDAO.save(voucher);
@@ -132,4 +134,6 @@ public class VoucherServiceImpl implements VoucherService {
 
         return vouchers;
     }
+
+
 }
