@@ -36,7 +36,7 @@ public class OCRService {
         tesseract.setLanguage("eng");
         tesseract.setPageSegMode(6); // Assume a single uniform block of text
         tesseract.setOcrEngineMode(1); // Use LSTM engine only for better accuracy
-        tesseract.setTessVariable("tessedit_char_whitelist", "₱PMHS0123456789 ");
+        tesseract.setTessVariable("tessedit_char_whitelist", "₱PMHSI0123456789 ");
     }
 
     /**
