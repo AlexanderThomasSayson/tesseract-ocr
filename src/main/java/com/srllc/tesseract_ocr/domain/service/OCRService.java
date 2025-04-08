@@ -125,24 +125,12 @@ public class OCRService {
                 throw new ImageProcessingException("Failed to process image: Image is empty or corrupt.");
             }
 
-            // Convert to grayscale
             Mat gray = new Mat();
             Imgproc.cvtColor(img, gray, Imgproc.COLOR_BGR2GRAY);
-
-            // Enhance contrast
-            //img.convertTo(img, -1, 1.2, 10);
-
-            // Apply Gaussian blur
-            //Imgproc.GaussianBlur(img, img, new Size(3, 3), 0);
-
-            // Apply sharpening kernel
-            //Mat sharpened = new Mat();
-            //Imgproc.GaussianBlur(img, sharpened, new Size(0, 0), 10);
 
             Mat equalized = new Mat();
             Imgproc.equalizeHist(gray, equalized);
 
-            // Adaptive thresholding
             Mat thresh = new Mat();
             Imgproc.adaptiveThreshold(equalized, thresh, 255,
                     Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -162,14 +150,15 @@ public class OCRService {
 
             log.info("Image processing complete. Processed image saved at: {}", processedPath);
             return processedPath;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Error processing image: {}", imagePath, e);
-            throw new RuntimeException("Unexpected error occurred during image processing.", e);
+            throw new ImageProcessingException("Unexpected error occurred during image processing.", e);
         }
     }
 
     public List<String> extractMultipleTicketNumbers(String text) {
-        log.info("Extracting multiple ticket numbers from text...");
+        log.info("Extracting multiple ticket numbers...");
         Pattern pattern = Pattern.compile("(MHS|HS)\\s+(\\d+)");
         Matcher matcher = pattern.matcher(text);
         List<String> ticketNumbers = new ArrayList<>();
@@ -177,7 +166,7 @@ public class OCRService {
         while (matcher.find()) {
             String ticketNumber = matcher.group(2);
             String prefix = matcher.group(1);
-            log.info("Ticket number extracted: {} (with prefix: {})", ticketNumber, prefix);
+            log.info("Ticket number extracted: {} (prefix: {})", ticketNumber, prefix);
             ticketNumbers.add(ticketNumber);
         }
 
@@ -189,7 +178,7 @@ public class OCRService {
     }
 
     public String extractSINumber(String imagePath) {
-        log.info("Extracting SI number from rotated image...");
+        log.info("Extracting SI number...");
 
         try {
             String absolutePath = new File(imagePath).getAbsolutePath();

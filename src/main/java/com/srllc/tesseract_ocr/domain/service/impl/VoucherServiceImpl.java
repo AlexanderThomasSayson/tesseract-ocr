@@ -20,8 +20,6 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.srllc.tesseract_ocr.common.utils.OCRUtil.extractMultipleTicketNumbers;
-
 @Service
 @Slf4j
 public class VoucherServiceImpl implements VoucherService {
@@ -108,7 +106,7 @@ public class VoucherServiceImpl implements VoucherService {
         String savedFilePath = FileStorageUtil.saveFile(multipartFile);
         String processedPath = ocrService.processImage(savedFilePath);
 
-        log.info("Image processed and saved at: {}", processedPath);
+        log.info("Image processed and saved at {}", processedPath);
 
         String extractedText = OCRUtil.extractText(ocrService, processedPath);
         List<String> voucherNumbers = OCRUtil.extractMultipleTicketNumbers(ocrService, extractedText);
@@ -127,13 +125,10 @@ public class VoucherServiceImpl implements VoucherService {
 
             Voucher voucher = voucherMapper.mapToEntity(voucherDTO);
             voucher = voucherDAO.save(voucher);
-            log.info("Voucher saved with ID: {}", voucher.getId());
+            log.info("Voucher saved with ID {}", voucher.getId());
 
             vouchers.add(voucherMapper.mapToDto(voucher));
         }
-
         return vouchers;
     }
-
-
 }
