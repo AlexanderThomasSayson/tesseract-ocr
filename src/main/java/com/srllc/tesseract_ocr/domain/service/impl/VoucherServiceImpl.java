@@ -121,7 +121,7 @@ public class VoucherServiceImpl implements VoucherService {
             voucherDTO.setAmount(ConstantStrings.PESO_SIGN + amount);
             voucherDTO.setOriginalImageURL(savedFilePath);
             voucherDTO.setProcessedImageURL(processedPath);
-            voucherDTO.setSiNumber(siNumber);
+            voucherDTO.setSiNumber(ConstantStrings.SI_PREFIX + siNumber);
 
             Voucher voucher = voucherMapper.mapToEntity(voucherDTO);
             voucher = voucherDAO.save(voucher);
