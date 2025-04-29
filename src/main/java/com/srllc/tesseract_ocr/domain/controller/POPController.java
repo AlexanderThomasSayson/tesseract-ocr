@@ -1,6 +1,7 @@
 package com.srllc.tesseract_ocr.domain.controller;
 
 import com.srllc.tesseract_ocr.domain.service.POPOCRService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class POPController {
         this.popocrService = popocrService;
     }
 
-
+    @Operation(summary = "Extract POP", description = "This endpoint allows extraction of POP using tesseract OCR.")
     @PostMapping(value = "/extract",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, Object>> extractText(@RequestPart("file") MultipartFile file) throws IOException {
         Path uploadDir = Paths.get("uploads");
