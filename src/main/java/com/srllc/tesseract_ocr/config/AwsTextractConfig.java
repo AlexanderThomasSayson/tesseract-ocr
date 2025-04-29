@@ -1,6 +1,5 @@
 package com.srllc.tesseract_ocr.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -11,21 +10,18 @@ import software.amazon.awssdk.services.textract.TextractClient;
 @Configuration
 public class AwsTextractConfig {
 
-    @Value("${aws.accessKeyId}")
-    private String accessKeyId;
+    private final AwsConfig awsConfig;
 
-    @Value("${aws.secretAccessKey}")
-    private String secretAccessKey;
-
-    @Value("${aws.region}")
-    private String region;
+    public AwsTextractConfig(AwsConfig awsConfig) {
+        this.awsConfig = awsConfig;
+    }
 
     @Bean
     public TextractClient textractClient() {
         return TextractClient.builder()
-                .region(Region.of(region)) // <- this is the missing part
+                .region(Region.of(awsConfig.getRegion()))
                 .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(accessKeyId, secretAccessKey)
+                        AwsBasicCredentials.create(awsConfig.getAccessKeyId(), awsConfig.getSecretAccessKey())
                 ))
                 .build();
     }
