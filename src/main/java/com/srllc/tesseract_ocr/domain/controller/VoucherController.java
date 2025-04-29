@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/vouchers")
-@Tag(name = "Voucher Controller", description = "Operations for managing OCR for syngenta vouchers.")
+@Tag(name = "1. Voucher Controller", description = "Operations for managing OCR for syngenta vouchers.")
 public class VoucherController {
 
     private final VoucherService voucherService;

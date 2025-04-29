@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/image-processing")
-@Tag(name = "Image Processing Controller", description = "Operations for managing text extract using tesseracts and open-cv")
+@Tag(name = "3. Image Processing Controller", description = "Operations for managing text extract using tesseracts and open-cv")
 public class ImageController {
 
     private final ImageProcessingService imageProcessingService;

@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/voucher-redemption")
-@Tag(name = "Voucher Redemption Controller", description = "Operations for managing OCR for syngenta voucher redemption.")
+@Tag(name = "2. Voucher Redemption Controller", description = "Operations for managing OCR for syngenta voucher redemption.")
 public class VoucherRedemptionFormController {
 
     private final VoucherRedemptionFromService voucherRedemptionFromService;
