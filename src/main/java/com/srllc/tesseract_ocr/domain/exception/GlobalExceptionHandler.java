@@ -7,7 +7,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import software.amazon.awssdk.services.textract.model.TextractException;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,5 +105,17 @@ public class GlobalExceptionHandler {
         response.setMessage(ex.getMessage());
         response.setData(null);
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<String> handleIOException(IOException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error reading file: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(TextractException.class)
+    public ResponseEntity<String> handleTextractException(TextractException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Textract error: " + ex.awsErrorDetails().errorMessage());
     }
 }
