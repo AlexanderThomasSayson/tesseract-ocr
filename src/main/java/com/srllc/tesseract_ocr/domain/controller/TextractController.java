@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/aws")
-@Tag(name = "AWS Textract", description = "Operation for AWS text extraction.")
+@Tag(name = "5. AWS Textract", description = "Operation for AWS text extraction.")
 public class TextractController {
 
     private final AwsTextractService awsTextractService;
@@ -27,7 +27,7 @@ public class TextractController {
     }
 
 
-    @Operation(summary = "AWS-Textract", description = "This endpoint extracts text from an image using AWS Textract.")
+    @Operation(summary = "AWS text extraction", description = "This endpoint extracts text from an image using AWS Textract.")
     @PostMapping(value = "/extract", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<String>> extractText(@RequestParam("file") MultipartFile file) throws IOException {
         List<String> lines = awsTextractService.extractTextFromFile(file);
@@ -35,7 +35,7 @@ public class TextractController {
     }
 
 
-    @Operation(summary = "Extract-table", description = "This endpoint turns text into a JSON table.")
+    @Operation(summary = "AWS text extraction with tables", description = "This endpoint turns text into a JSON table.")
     @PostMapping(value = "/extract-table", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<Map<String, Object>>> extractTextTable(@RequestParam("file") MultipartFile file) throws IOException {
         List<Map<String, Object>> tables = awsTextractService.extractTablesFromFile(file);

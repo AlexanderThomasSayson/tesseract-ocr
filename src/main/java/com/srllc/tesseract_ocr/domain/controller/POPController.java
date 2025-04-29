@@ -20,7 +20,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/pop-controller")
-@Tag( name = "Proof Of Purchase Controller", description = "Operations for managing POP Validations.")
+@Tag( name = "4. Proof Of Purchase Controller", description = "Operations for managing POP Validations.")
 public class POPController {
 
     private final POPOCRService popocrService;
