@@ -1,10 +1,11 @@
 package com.srllc.tesseract_ocr.domain.controller;
 
+import com.srllc.tesseract_ocr.common.utils.ApiResponse;
+import com.srllc.tesseract_ocr.common.utils.DefaultResponse;
 import com.srllc.tesseract_ocr.domain.service.AwsTextractService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,29 +18,29 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/aws")
-@Tag(name = "5. AWS Textract", description = "Operation for AWS text extraction.")
-public class TextractController {
+@Tag(name = "5. AWS Text Extract Controller", description = "Operation for AWS text extraction.")
+public class AwsTextractController {
 
     private final AwsTextractService awsTextractService;
 
-    public TextractController(AwsTextractService awsTextractService) {
+    public AwsTextractController(AwsTextractService awsTextractService) {
         this.awsTextractService = awsTextractService;
     }
 
 
     @Operation(summary = "AWS text extraction", description = "This endpoint extracts text from an image using AWS Textract.")
     @PostMapping(value = "/extract", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<List<String>> extractText(@RequestParam("file") MultipartFile file) throws IOException {
+    public ApiResponse<List<String>> extractText(@RequestParam("file") MultipartFile file) throws IOException {
         List<String> lines = awsTextractService.extractTextFromFile(file);
-        return ResponseEntity.ok(lines);
+        return DefaultResponse.displayFoundObject(lines);
     }
 
 
     @Operation(summary = "AWS text extraction with tables", description = "This endpoint turns text into a JSON table.")
     @PostMapping(value = "/extract-table", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<List<Map<String, Object>>> extractTextTable(@RequestParam("file") MultipartFile file) throws IOException {
+    public ApiResponse<List<Map<String, Object>>> extractTextTable(@RequestParam("file") MultipartFile file) throws IOException {
         List<Map<String, Object>> tables = awsTextractService.extractTablesFromFile(file);
-        return ResponseEntity.ok(tables);
+        return DefaultResponse.displayFoundObject(tables);
     }
 
 }
