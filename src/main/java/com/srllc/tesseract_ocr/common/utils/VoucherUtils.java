@@ -25,16 +25,18 @@ public class VoucherUtils {
     }
 
     public static List<String> extractSerialNos(List<String> lines) {
-        Pattern serialPattern = Pattern.compile("SI:\\s?\\d+");
+        Pattern serialPattern = Pattern.compile("SI[:\\s]\\s?\\d+");
         return lines.stream()
                 .flatMap(line -> {
                     Matcher matcher = serialPattern.matcher(line);
                     List<String> matches = new ArrayList<>();
                     while (matcher.find()) {
-                        matches.add(matcher.group().replace("SI:", "").trim());
+                        String matched = matcher.group().replace("SI:", "").replace("SI", "").trim();
+                        matches.add(matched);
                     }
                     return matches.stream();
                 })
                 .toList();
     }
+
 }
