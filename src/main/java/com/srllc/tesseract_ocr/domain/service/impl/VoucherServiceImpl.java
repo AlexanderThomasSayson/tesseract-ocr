@@ -1,7 +1,9 @@
 package com.srllc.tesseract_ocr.domain.service.impl;
 
+import com.srllc.tesseract_ocr.common.mapper.VoucherMapper;
 import com.srllc.tesseract_ocr.common.utils.ImageProcessingUtil;
 import com.srllc.tesseract_ocr.domain.dao.VoucherDao;
+import com.srllc.tesseract_ocr.domain.dto.VoucherDto;
 import com.srllc.tesseract_ocr.domain.entity.Voucher;
 import com.srllc.tesseract_ocr.domain.service.VoucherService;
 import org.springframework.stereotype.Service;
@@ -27,12 +29,17 @@ public class VoucherServiceImpl implements VoucherService {
 
     private final VoucherDao voucherDao;
     private final TextractClient textractClient;
+    private final VoucherMapper voucherMapper;
 
-    public VoucherServiceImpl(VoucherDao voucherDao, TextractClient textractClient) {
+    public VoucherServiceImpl(VoucherDao voucherDao,
+                              TextractClient textractClient,
+                              VoucherMapper voucherMapper) {
         this.voucherDao = voucherDao;
         this.textractClient = textractClient;
+        this.voucherMapper = voucherMapper;
     }
 
+    @Override
     public List<String> extractTextFromFile(MultipartFile file) throws IOException {
         byte[] processedImageBytes = ImageProcessingUtil.preprocessImage(file);
         ByteBuffer imageBytes = ByteBuffer.wrap(processedImageBytes);
@@ -54,16 +61,16 @@ public class VoucherServiceImpl implements VoucherService {
 
         List<String> ticketNos = extractTicketNos(extractedText);
         List<String> serialNos = extractSerialNos(extractedText);
-
-        // Static amount
         String amount = "500";
 
-        // Save each ticket + serialNo combo to DB
         for (int i = 0; i < ticketNos.size(); i++) {
-            String ticket = ticketNos.get(i);
-            String serial = (i < serialNos.size()) ? serialNos.get(i) : null;
-            Voucher voucher = new Voucher(ticket, amount, serial);
-            voucherDao.save(voucher);
+            VoucherDto dto = new VoucherDto();
+            dto.setTicketNo(ticketNos.get(i));
+            dto.setAmount(amount);
+            dto.setSerialNo(i < serialNos.size() ? serialNos.get(i) : null);
+
+            Voucher entity = voucherMapper.toEntity(dto);
+            voucherDao.save(entity);
         }
 
         return extractedText;
