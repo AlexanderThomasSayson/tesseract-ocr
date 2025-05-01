@@ -43,4 +43,17 @@ public class AwsTextractController {
         return DefaultResponse.displayFoundObject(tables);
     }
 
+    @Operation(summary = "AWS text extraction with all types of entity", description = "This endpoint turns text into a JSON table.")
+    @PostMapping(value = "/extract-documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Map<String, Object>> extractDocuments(@RequestParam("file") MultipartFile file) throws IOException {
+        // Extracting content from the file (tables, forms, and text)
+        Map<String, Object> extractedData = awsTextractService.extractContentFromFile(file);
+
+        // You may choose to filter or handle only tables here, if you want to return only tables
+        // For now, we return the entire extracted data (which may include tables, forms, and text)
+
+        return DefaultResponse.displayFoundObject(extractedData);
+    }
+
+
 }

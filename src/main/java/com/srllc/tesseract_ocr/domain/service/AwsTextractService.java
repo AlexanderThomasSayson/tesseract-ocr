@@ -12,4 +12,6 @@ public interface AwsTextractService {
 
     List<Map<String, Object>> extractTablesFromFile(MultipartFile file)throws IOException;
 
+    Map<String, Object> extractContentFromFile(MultipartFile file) throws IOException;
+
 }
