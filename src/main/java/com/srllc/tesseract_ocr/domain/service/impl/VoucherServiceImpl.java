@@ -6,6 +6,7 @@ import com.srllc.tesseract_ocr.domain.dao.VoucherDao;
 import com.srllc.tesseract_ocr.domain.dto.VoucherDto;
 import com.srllc.tesseract_ocr.domain.entity.Voucher;
 import com.srllc.tesseract_ocr.domain.service.VoucherService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.SdkBytes;
@@ -18,12 +19,12 @@ import software.amazon.awssdk.services.textract.model.Document;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
+import static com.srllc.tesseract_ocr.common.utils.VoucherUtils.extractSerialNos;
+import static com.srllc.tesseract_ocr.common.utils.VoucherUtils.extractTicketNos;
+
+@Slf4j
 @Service
 public class VoucherServiceImpl implements VoucherService {
 
@@ -41,7 +42,11 @@ public class VoucherServiceImpl implements VoucherService {
 
     @Override
     public List<String> extractTextFromFile(MultipartFile file) throws IOException {
+        log.info("Starting text extraction from file: {}", file.getOriginalFilename());
+
         byte[] processedImageBytes = ImageProcessingUtil.preprocessImage(file);
+        log.debug("Image preprocessing completed.");
+
         ByteBuffer imageBytes = ByteBuffer.wrap(processedImageBytes);
 
         Document document = Document.builder()
@@ -52,15 +57,23 @@ public class VoucherServiceImpl implements VoucherService {
                 .document(document)
                 .build();
 
+        log.debug("Sending request to AWS Textract.");
         DetectDocumentTextResponse response = textractClient.detectDocumentText(request);
+        log.debug("Received response from AWS Textract.");
 
         List<String> extractedText = response.blocks().stream()
                 .filter(block -> block.blockType().equals(BlockType.LINE))
                 .map(Block::text)
-                .collect(Collectors.toList());
+                .toList(); // replaced here
+
+        log.info("Extracted {} lines of text from image.", extractedText.size());
 
         List<String> ticketNos = extractTicketNos(extractedText);
+        log.info("Extracted {} ticket numbers: {}", ticketNos.size(), ticketNos);
+
         List<String> serialNos = extractSerialNos(extractedText);
+        log.info("Extracted {} serial numbers: {}", serialNos.size(), serialNos);
+
         String amount = "500";
 
         for (int i = 0; i < ticketNos.size(); i++) {
@@ -71,37 +84,11 @@ public class VoucherServiceImpl implements VoucherService {
 
             Voucher entity = voucherMapper.toEntity(dto);
             voucherDao.save(entity);
+            log.debug("Saved voucher to database: {}", dto);
         }
 
+        log.info("Text extraction and voucher saving completed.");
         return extractedText;
     }
 
-    private List<String> extractTicketNos(List<String> lines) {
-        Pattern ticketPattern = Pattern.compile("MHS\\s?\\d+");
-        return lines.stream()
-                .flatMap(line -> {
-                    Matcher matcher = ticketPattern.matcher(line);
-                    List<String> matches = new ArrayList<>();
-                    while (matcher.find()) {
-                        matches.add(matcher.group().replace(" ", "")); // Remove space if present
-                    }
-                    return matches.stream();
-                })
-                .collect(Collectors.toList());
-    }
-
-
-    private List<String> extractSerialNos(List<String> lines) {
-        Pattern serialPattern = Pattern.compile("SI:\\s?\\d+");
-        return lines.stream()
-                .flatMap(line -> {
-                    Matcher matcher = serialPattern.matcher(line);
-                    List<String> matches = new ArrayList<>();
-                    while (matcher.find()) {
-                        matches.add(matcher.group().replace("SI:", "").trim());
-                    }
-                    return matches.stream();
-                })
-                .collect(Collectors.toList());
-    }
 }
