@@ -7,36 +7,35 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuration class for OpenAPI (SWAGGER) documentation.
+ * Configuration class for OpenAPI (Swagger) documentation.
  * <p>
- * This class defines the OpenAPI configuration for the application,
- * providing API metadata such as title, description, version, license,
- * and external documentation.
+ * This class sets up the OpenAPI specification for the application,
+ * including metadata such as the API title, description, version, and contact information.
  * </p>
  */
 @Configuration
 public class OpenApiConfig {
 
     /**
-     * Configures the OpenAPI documentation for the application.
+     * Defines the OpenAPI configuration for the application.
      * <p>
-     * This method initializes an {@link OpenAPI} instance with
-     * application metadata including title, description, version,
-     * license information, security requirements, and external documentation links.
+     * Initializes and returns an {@link OpenAPI} instance containing
+     * metadata including the API title, version, description, and contact details.
      * </p>
      *
-     * @return An {@link OpenAPI} instance containing the API documentation configuration.
+     * @return an {@link OpenAPI} instance with customized API documentation settings
      */
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Tesseracts Optical Character Recognition  API v1.0.0")
+                        .title("Voucher and Redemption Form Text Extraction API v1.0.0")
                         .version("1.0")
                         .description("""
-                                API documentation for Tesseracts Optical Character Recognition (OCR).
+                                API documentation for the Voucher and Voucher Redemption Form Text Extraction 
+                                service, utilizing AWS Textract and Optical Character Recognition (OCR).
                                 
-                                **Developer:**
+                                **Developer**
                                 - Alexander Thomas Sayson
                                 """)
                         .contact(new Contact()
