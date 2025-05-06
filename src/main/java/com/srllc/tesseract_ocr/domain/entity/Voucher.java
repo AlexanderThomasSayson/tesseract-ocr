@@ -1,5 +1,6 @@
 package com.srllc.tesseract_ocr.domain.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +26,9 @@ public class Voucher {
     private String ticketNo;
     private String amount;
     private String serialNo;
+    @Column(name = "exists_in_ticket_table")
+    private boolean existsInTicketTable;
+
 
     public Voucher(String ticketNo, String amount, String serialNo) {
         this.ticketNo = ticketNo;

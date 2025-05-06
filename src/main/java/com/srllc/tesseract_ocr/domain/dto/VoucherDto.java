@@ -11,4 +11,6 @@ public class VoucherDto {
     private String ticketNo;
     private String amount;
     private String serialNo;
+    private boolean existsInTicketTable;
+
 }
