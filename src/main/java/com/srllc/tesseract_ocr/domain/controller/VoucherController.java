@@ -17,7 +17,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/vouchers")
-@Tag(name = "1. Voucher Controller", description = "Operations for managing SYT vouchers.")
+@Tag(
+        name = "1. Voucher Controller",
+        description = "Provides endpoints for managing SYT vouchers, including creation, retrieval, updating, and validation processes."
+)
 public class VoucherController {
 
     private final VoucherService voucherService;
@@ -26,7 +29,10 @@ public class VoucherController {
         this.voucherService = voucherService;
     }
 
-    @Operation(summary = "Voucher text extraction", description = "This endpoint extracts text from a voucher image using AWS Textract.")
+    @Operation(
+            summary = "Extract Text from Voucher Image",
+            description = "Processes a voucher image and extracts text content using AWS Textract. Ideal for retrieving voucher codes or relevant printed details from scanned documents or image files."
+    )
     @PostMapping(value = "/extract", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<List<String>> extractVoucher(@RequestParam("file") MultipartFile file) throws IOException {
         List<String> lines = voucherService.extractTextFromFile(file);
