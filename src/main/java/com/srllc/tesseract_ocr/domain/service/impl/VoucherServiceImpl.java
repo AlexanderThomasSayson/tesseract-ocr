@@ -2,6 +2,7 @@ package com.srllc.tesseract_ocr.domain.service.impl;
 
 import com.srllc.tesseract_ocr.common.mapper.VoucherMapper;
 import com.srllc.tesseract_ocr.common.utils.ImageProcessingUtil;
+import com.srllc.tesseract_ocr.domain.dao.TicketDao;
 import com.srllc.tesseract_ocr.domain.dao.VoucherDao;
 import com.srllc.tesseract_ocr.domain.dto.VoucherDto;
 import com.srllc.tesseract_ocr.domain.entity.Voucher;
@@ -31,17 +32,21 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherDao voucherDao;
     private final TextractClient textractClient;
     private final VoucherMapper voucherMapper;
+    private final TicketDao ticketDao;
 
     public VoucherServiceImpl(VoucherDao voucherDao,
                               TextractClient textractClient,
-                              VoucherMapper voucherMapper) {
+                              VoucherMapper voucherMapper, TicketDao ticketDao) {
         this.voucherDao = voucherDao;
         this.textractClient = textractClient;
         this.voucherMapper = voucherMapper;
+        this.ticketDao = ticketDao;
     }
 
     @Override
     public List<String> extractTextFromFile(MultipartFile file) throws IOException {
+
+        // with OpenCV preprocessing
         log.info("Starting text extraction from file: {}", file.getOriginalFilename());
 
         byte[] processedImageBytes = ImageProcessingUtil.preprocessImage(file);
@@ -64,7 +69,7 @@ public class VoucherServiceImpl implements VoucherService {
         List<String> extractedText = response.blocks().stream()
                 .filter(block -> block.blockType().equals(BlockType.LINE))
                 .map(Block::text)
-                .toList(); // replaced here
+                .toList();
 
         log.info("Extracted {} lines of text from image.", extractedText.size());
 
@@ -77,10 +82,16 @@ public class VoucherServiceImpl implements VoucherService {
         String amount = "500";
 
         for (int i = 0; i < ticketNos.size(); i++) {
+            String ticketNo = ticketNos.get(i);
+
+            boolean existsInTicketTable = ticketDao.existsByTicketNumber(ticketNo);
+            log.debug("Ticket number '{}' exists in Ticket table: {}", ticketNo, existsInTicketTable);
+
             VoucherDto dto = new VoucherDto();
-            dto.setTicketNo(ticketNos.get(i));
+            dto.setTicketNo(ticketNo);
             dto.setAmount(amount);
             dto.setSerialNo(i < serialNos.size() ? serialNos.get(i) : null);
+            dto.setExistsInTicketTable(existsInTicketTable); // Add this field to your DTO if needed
 
             Voucher entity = voucherMapper.toEntity(dto);
             voucherDao.save(entity);
@@ -90,5 +101,6 @@ public class VoucherServiceImpl implements VoucherService {
         log.info("Text extraction and voucher saving completed.");
         return extractedText;
     }
+
 
 }

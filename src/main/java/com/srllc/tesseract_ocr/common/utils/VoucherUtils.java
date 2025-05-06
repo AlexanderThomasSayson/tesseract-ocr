@@ -11,13 +11,14 @@ import java.util.regex.Pattern;
 public class VoucherUtils {
 
     public static List<String> extractTicketNos(List<String> lines) {
-        Pattern ticketPattern = Pattern.compile("MHS\\s?\\d+");
+        Pattern ticketPattern = Pattern.compile("MHS\\s?(\\d+)");
         return lines.stream()
                 .flatMap(line -> {
                     Matcher matcher = ticketPattern.matcher(line);
                     List<String> matches = new ArrayList<>();
                     while (matcher.find()) {
-                        matches.add(matcher.group().replace(" ", ""));
+                        // Group(1) captures the digits after MHS
+                        matches.add("MHS " + matcher.group(1));
                     }
                     return matches.stream();
                 })
